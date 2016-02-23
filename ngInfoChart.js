@@ -12,7 +12,7 @@ function require(script) {
     });
 }
 
-require("assets/js/chart_factory.js");
+require(js_path.chart_factory);
 
 /*定义新模块infoChart.highcharts，在模块中引入封装的绘图方法的highcharts模块*/
 var infoChartHighcharts = angular.module("infoChart.highcharts", ['highcharts']);
@@ -276,28 +276,27 @@ infoChartD3.directive('infoChartsSankey', function($window) {
 });
 
 
-var infoChartGoogle = angular.module("infoChart.google", []);
-infoChartGoogle.directive('infoChartsMotion', function($window){
+var infoChartGoogle = angular.module("infoChart.google", ['googleCharts']);
+require(js_path.google.jsapi);
+require(js_path.google.motionchart);
+
+infoChartGoogle.directive('infoChartsMotion', function($window,googleChart){
 	return{
 		restrict:'EA',
 	    template:"<div class='myCharts'></div>",
 		scope:{
-			chartData:'='
+			chartData:'=',
+			chartWidth:'=',
+			chartHeight:'='
 		},
 		link: function(scope, elem, attrs){
 			scope.$watch('chartData', function(nv){
+
 				if (JSON.stringify(nv) !== '{}' || typeof nv != 'undefined') {
 					var container = elem;
 					var container=elem.find('div')[0];
 					my_data = nv
-					var data = new google.visualization.DataTable();
-					angular.forEach(my_data.header, function(value, key) {
-						data.addColumn(value,key);
-					});
-
-					data.addRows(my_data.data);
-					var chart = new google.visualization.MotionChart(container);
-						chart.draw(data, {width: 950, height:500});
+					googleChart.motion(container,my_data,scope.chartWidth,scope.chartHeight);
 				};
 			})
 		}

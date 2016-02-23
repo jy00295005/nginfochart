@@ -80,3 +80,21 @@ highcharts.factory('highchart', function(){
         }  */ 
     }               
 });
+
+/*添加gogoleCharts farctory*/
+var googleCharts = angular.module("googleCharts", []);
+googleCharts.factory('googleChart', function(){
+    return {
+        motion: function(container,my_data,w,h){
+        	var data = new google.visualization.DataTable();
+			angular.forEach(my_data.header, function(value, key) {
+				data.addColumn(value,key);
+			});
+
+			data.addRows(my_data.data);
+			var chart = new google.visualization.MotionChart(container);
+				chart.draw(data, {width: w, height:h});
+    	}
+	}
+})
+
