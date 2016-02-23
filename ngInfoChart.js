@@ -1,84 +1,38 @@
-var infoChartHighcharts = angular.module("infoChart.highcharts", []);
-infoChartHighcharts.directive('infoChartsHeatmap', function($window){
+function require(script) {
+    $.ajax({
+        url: script,
+        dataType: "script",
+        async: false,
+        success: function () {
+            // all good...
+        },
+        error: function () {
+            throw new Error("Could not load script " + script);
+        }
+    });
+}
+
+require("assets/js/chart_factory.js");
+
+/*定义新模块infoChart.highcharts，在模块中引入封装的绘图方法的highcharts模块*/
+var infoChartHighcharts = angular.module("infoChart.highcharts", ['highcharts']);
+/*定义“自定义html标签”-infoChartsHeatmap，在其中引入对应的绘图方法：highchart*/
+infoChartHighcharts.directive('infoChartsHeatmap', function($window,highchart){
 	return{
 		restrict:'EA',
-	    template:"<div class='myCharts'></div>",
+	    template:"<div class='myCharts'></div>",// 定义标签中html容器
 		scope:{
-			chartData:'='
+			chartData:'='//获取标签属性中chartData中的数据
 		},
 		link: function(scope, elem, attrs){
+			// 使用$watch方法监控数据变化，如果数据有辩护自动更新图谱
 			scope.$watch('chartData', function(nv){
 				if (typeof nv.title == 'undefined') {
 					console.log('title field is missing');
 					return;
 				}
 				var container=elem.find('div');
-				container.highcharts({
-			        chart: {
-			            type: 'heatmap',
-			            marginTop: 40,
-			            marginBottom: 80
-			        },
-
-			        title: {
-			            text: nv.title
-			        },
-
-			        xAxis: {
-			            categories: nv.xAxis.data,
-			            title: function () {
-			            	if (xAxis.title) {
-			            		return nv.xAxis.title;
-			            	} else{
-			            		return null;
-			            	};
-			            }
-			        },
-
-			        yAxis: {
-			            categories: nv.yAxis.data,
-			            title: function () {
-			            	if (yAxis.title) {
-			            		return nv.yAxis.title;
-			            	} else{
-			            		return null;
-			            	};
-			            }
-			        },
-
-			        colorAxis: {
-			            min: 0,
-			            minColor: '#FFFFFF',
-			            maxColor: Highcharts.getOptions().colors[0]
-			        },
-
-			        legend: {
-			            align: 'right',
-			            layout: 'vertical',
-			            margin: 0,
-			            verticalAlign: 'top',
-			            y: 25,
-			            symbolHeight: 280
-			        },
-
-			        tooltip: {
-			            formatter: function () {
-			                return '<b>' + this.series.xAxis.categories[this.point.x] + '</b> sold <br><b>' +
-			                    this.point.value + '</b> items on <br><b>' + this.series.yAxis.categories[this.point.y] + '</b>';
-			            }
-			        },
-
-			        series: [{
-			            name: nv.series.name,
-			            borderWidth: 1,
-			            data: nv.series.data,
-			            dataLabels: {
-			                enabled: true,
-			                color: '#000000'
-			            }
-			        }]
-
-			    });
+				highchart.heatmap(container,nv);
 			})
 		}
 	}
@@ -331,40 +285,21 @@ infoChartGoogle.directive('infoChartsMotion', function($window){
 			chartData:'='
 		},
 		link: function(scope, elem, attrs){
-			var container = elem[0];
-			my_data = {
-				header:{
-					Fruit: "string",
-					Year: "number",
-					Sales: "number",
-					Expenses: "number",
-					Location: "string",
-				},
-				data:[
-					['Apples',  1988, 1000, 300, 'East'],
-					['Oranges', 1988, 1150, 200, 'West'],
-					['Bananas', 1988, 300,  250, 'West'],
-					['Apples',  1989, 1200, 400, 'East'],
-					['Oranges', 1989, 750,  150, 'West'],
-					['Bananas', 1989, 788,  617, 'West'],
-					['Apples', 1990, 128, 27, 'East'],
-					['Oranges', 1990, 188, 17, 'West'],
-					['Bananas', 1990, 1288, 217, 'West'],
-				]
-			};
+			scope.$watch('chartData', function(nv){
+				if (JSON.stringify(nv) !== '{}' || typeof nv != 'undefined') {
+					var container = elem;
+					var container=elem.find('div')[0];
+					my_data = nv
+					var data = new google.visualization.DataTable();
+					angular.forEach(my_data.header, function(value, key) {
+						data.addColumn(value,key);
+					});
 
-
-			var data = new google.visualization.DataTable();
-			angular.forEach(my_data.header, function(value, key) {
-				data.addColumn(value,key);
-			});
-
-			data.addRows(my_data.data);
-			google.setOnLoadCallback(drawChart);
-			function drawChart() {
-				var chart = new google.visualization.MotionChart(container);
-				chart.draw(data, {width: 950, height:500});
-			}
+					data.addRows(my_data.data);
+					var chart = new google.visualization.MotionChart(container);
+						chart.draw(data, {width: 950, height:500});
+				};
+			})
 		}
 	}
 });
